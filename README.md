@@ -1,11 +1,13 @@
 
 ## Description
 
-This is a sample script reading the input from an USB RFID reader connected to a Raspberry Pi to trigger on/off commands controlling a LED light bulb.
+Many people are issued Proxcards at work and already carry them the majority of the time when entering or leaving their homes. This program will allow you to use your existing card interface with your home automation system (like HomeAssistant).
 
-The RFID used is a [RFIDeas pcProx 125 kHz][rfid] which basically simulates keyboard input.
+This script allows you to define a list of 'authorized' proxcards and fire an MQTT message to your broker with the scan result (access granted/denied + ID number).
 
-The python script uses [evdev][evdev] to read the input and make a POST request to a controller server that manages the light bulbs.
+The Proxcard Scanner used is a [RFIDeas pcProx 125 kHz][rfid] which basically simulates keyboard input. This is best coupled with a Raspberry Pi or nearby Linux box.
+
+The python script uses [evdev][evdev] to read the input and compare it against the defined array of badges and [paho-mqtt][paho-mqtt] to interface with any MQTT capable system.
 
 
 ## Documentation
@@ -23,25 +25,34 @@ Bus 001 Device 005: ID 0c27:3bfa RFIDeas, Inc pcProx Card Reader
 Once your device is recognized, you can run the script:
 
 ```bash
-$ sudo python rfid_light.py -o 2714
+$ python proxcard_auth.py
 ```
-
-The **-o** option is the RFID card number that will be used to trigger the **on** command. Any other value will trigger the **off** command. Simple as that.
-
 
 ## Config
 
 ```ini
-[auth]
-uuid: '3444d6844dd36514dd44411455cfb596'
-token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9'
 
-[requests]
-uri = '/command/'
-host = 'myserver.com'
-url_template = 'http://%s%s%s'
+MQTT_HOST = '127.0.0.1'
+MQTT_PORT = 1883
+MQTT_USER = 'mqtt_user'
+MQTT_PASSWORD = 'mqtt_pass'
+MQTT_CLIENT_ID = 'badge-scanner-01'
+MQTT_TOPIC_PREFIX = 'home/badge-scan'
+
+...
+
+static_roster = [
+                '111111', """ /// User 1 /// """
+                '222222', """ /// User 2 /// """
+                '333333', """ /// User 3 """
+                'dummy'   """ /// Dummy entry as there is a list bug /// """
+                ]
+
 ```
+## Requirements
+
 
 
 [rfid]: https://www.rfideas.com/support/product-support/pcprox-125-khz-enroll
 [evdev]: https://github.com/gvalkov/python-evdev
+[paho-mqtt]" https://www.eclipse.org/paho/clients/python/docs/
