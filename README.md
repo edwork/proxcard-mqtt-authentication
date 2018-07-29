@@ -55,4 +55,4 @@ static_roster = [
 
 [rfid]: https://www.rfideas.com/support/product-support/pcprox-125-khz-enroll
 [evdev]: https://github.com/gvalkov/python-evdev
-[paho-mqtt]" https://www.eclipse.org/paho/clients/python/docs/
+[paho-mqtt]: https://www.eclipse.org/paho/clients/python/docs/
