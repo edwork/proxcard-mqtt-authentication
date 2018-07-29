@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+########################################################
+__author__ = "Edwork"
+__license__ = "GPL3"
+__version__ = "1.0"
+
+### RPI-MQTT-JSON-Multisensor
+#
+# Setup: Fill in variables under the configuration section 
+# See following for more information: https://github.com/edwork/proxcard-mqtt-authentication
+#
+########################################################
+
 import sys
 import signal
-import argparse
-import traceback
 import time
-import httplib
-import requests
-import json
-import ConfigParser
+import re
+import paho.mqtt.publish as publish
 from evdev import InputDevice, list_devices, categorize, ecodes
 
 SCANCODES = {
@@ -22,34 +30,29 @@ SCANCODES = {
     50: u'M', 51: u',', 52: u'.', 53: u'/', 54: u'RSHFT', 56: u'LALT', 100: u'RALT'
 }
 
+""" User Variables/Settings """
+MQTT_HOST = '127.0.0.1'
+MQTT_PORT = 1883
+MQTT_USER = 'mqtt_user'
+MQTT_PASSWORD = 'mqtt_pass'
+MQTT_CLIENT_ID = 'badge-scanner-01'
+MQTT_TOPIC_PREFIX = 'home/badge-scan'
+
+""" Static Variables - Don't Change """
 KEY_ENTER = 'KEY_ENTER'
 DEVICE_NAME = 'RFIDeas USB Keyboard'
-
-URI = ''
-HOST = ''
-URL_TEMPLATE = ''
 UUID = ''
+
+auth_info = {
+  'username':MQTT_USER,
+  'password':MQTT_PASSWORD
+}
 
 ON_RFID = 0
 
 
 def get_default_payload(rfid):
     return {'uuid': UUID, 'rfid': rfid}
-
-
-def make_request(rfid):
-    payload = get_default_payload(rfid)
-
-    command = 'on' if (rfid == ON_RFID) else 'off'
-
-    url = URL_TEMPLATE % (HOST, URI, command)
-    headers = {'content-type': 'application/json'}
-
-    try:
-        requests.post(url, data=json.dumps(payload), headers=headers)
-    except Exception as e:
-        print 'Error: ', e
-
 
 
 def get_scanner_device():
@@ -92,19 +95,6 @@ def cleanup(device):
     device.ungrab()
 
 
-def configure(path='config.ini'):
-    config = ConfigParser.ConfigParser()
-    config.read(path)
-
-    global URI, HOST, URL_TEMPLATE, UUID
-    URI = config.get('requests', 'uri')
-    HOST = config.get('requests', 'host')
-    URL_TEMPLATE = config.get('requests', 'url_template')
-
-    UUID = config.get('auth', 'uuid')
-
-    print "Initialize %s" %UUID
-
 def sigterm_handler(_signo, _stack_frame):
     """
     When sysvinit sends the SIGTERM signal,
@@ -115,22 +105,46 @@ def sigterm_handler(_signo, _stack_frame):
     cleanup()
     sys.exit(0)
 
+def publish_granted():
+    granted_message = 'access_granted'
+    publish.single(MQTT_TOPIC_PREFIX,
+                   granted_message,
+                   hostname = MQTT_HOST,
+                   client_id = MQTT_CLIENT_ID,
+                   auth = auth_info,
+                   port = MQTT_PORT
+                  )
+
+def publish_denied():
+    denied_message = 'access_denied'
+    publish.single(MQTT_TOPIC_PREFIX,
+                   denied_message,
+                   hostname = MQTT_HOST,
+                   client_id = MQTT_CLIENT_ID,
+                   auth = auth_info,
+                   port = MQTT_PORT
+                  )
+
+def publish_badgeid(scanned_badge):
+    publish.single(MQTT_TOPIC_PREFIX + '/badgeid',
+                   scanned_badge,
+                   hostname = MQTT_HOST,
+                   client_id = MQTT_CLIENT_ID,
+                   auth = auth_info,
+                   port = MQTT_PORT
+                  )
+
+static_roster = [
+                '111111', """ /// User 1 /// """
+                '222222', """ /// User 2 /// """
+                '333333', """ /// User 3 """
+                'dummy'   """ /// Dummy entry as there is a list bug /// """
+                ]
+
 
 if __name__ == "__main__":
     #Register for SIGTERMs
     signal.signal(signal.SIGTERM, sigterm_handler)
-
-    #TODO: Move RFID on/off to config, we should map commands and build from there.
-    #(on, 2427) (off,2222) (toggle, 3333)
-    parser = argparse.ArgumentParser(description='RFID demo')
-    parser.add_argument('-O', '--on', required=True, help='RFID associated with on command')
-    parser.add_argument('-C', '--config', default='config.ini', help='Path to config file')
-    args = parser.parse_args()
-
-    ON_RFID = args.on
-
-    config_path = args.config
-    configure(path=config_path)
 
     device_name = get_scanner_device()
     device = init(device_name)
@@ -140,8 +154,14 @@ if __name__ == "__main__":
     while True:
         try:
             rfid = read_input(device)
-            make_request(rfid)
-            print 'RFID card read, value: %s' %rfid
+            rfid_numonly = (re.search(r"(?<=\;)[^\]]+", rfid)).group(0)
+            print 'RFID card read, value: %s' %rfid_numonly
+            if rfid_numonly in static_roster :
+                print('Access Granted!')
+                publish_granted()
+            else :
+                print('Access Denied!')
+                publish_denied()
         except ValueError:
             time.sleep(0.1)
         except Exception, e:

@@ -1,8 +1,0 @@
-[auth]
-uuid: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-token: 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-
-[requests]
-uri = /command/
-host = your.endpoint.com
-url_template = http://%s%s%s
