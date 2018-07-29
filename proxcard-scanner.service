@@ -1,0 +1,18 @@
+# Systemd Service Config
+[Unit]
+Description=Proxcard-Scanner
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+### Replace with wherever you cloned the repo
+WorkingDirectory=/home/pi/proxcard-mqtt-authentication
+### Run 'which python' and replace /usr/bin/python if necessary
+ExecStart=/usr/bin/python3 proxcard_auth.py
+Restart=on-failure
+RestartSec=10
+KillMode=process
+
+[Install]
+WantedBy=multi-user.target
