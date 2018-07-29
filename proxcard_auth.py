@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 ########################################################
@@ -78,14 +78,14 @@ def read_input(device):
 
 def init(dev):
     if str(dev) == 'None':
-        print "Device not found"
+        print('Device not found')
         sys.exit(1)
 
     try:
         device = InputDevice(dev.fn)
         device.grab()
     except:
-        print "Unable to grab input device"
+        print('Unable to grab input device')
         sys.exit(1)
 
     return device
@@ -125,6 +125,8 @@ def publish_denied():
                    port = MQTT_PORT
                   )
 
+""" TODO: Add Support for sending scanned badges via MQTT
+    for Logging/Accounting/etc... """
 def publish_badgeid(scanned_badge):
     publish.single(MQTT_TOPIC_PREFIX + '/badgeid',
                    scanned_badge,
@@ -134,6 +136,8 @@ def publish_badgeid(scanned_badge):
                    port = MQTT_PORT
                   )
 
+
+""" TODO: Modularize Roster, add support for network """
 static_roster = [
                 '111111', """ /// User 1 /// """
                 '222222', """ /// User 2 /// """
@@ -149,13 +153,13 @@ if __name__ == "__main__":
     device_name = get_scanner_device()
     device = init(device_name)
 
-    print 'Found device: %s' % DEVICE_NAME
+    print('Found device: ' + DEVICE_NAME)
 
     while True:
         try:
             rfid = read_input(device)
             rfid_numonly = (re.search(r"(?<=\;)[^\]]+", rfid)).group(0)
-            print 'RFID card read, value: %s' %rfid_numonly
+            print('RFID card read, value: ' + rfid_numonly)
             if rfid_numonly in static_roster :
                 print('Access Granted!')
                 publish_granted()
@@ -164,7 +168,7 @@ if __name__ == "__main__":
                 publish_denied()
         except ValueError:
             time.sleep(0.1)
-        except Exception, e:
-            print e
+        except (Exception, e):
+            print (e)
             cleanup(device)
             sys.exit(1)
