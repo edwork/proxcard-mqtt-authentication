@@ -52,7 +52,7 @@ static_roster = [
 
 ## Running as a service
 ### Systemd
-* Copy rpi-sensor.service to `/etc/systemd/system/`
+* Copy proxcard-scanner.service to `/etc/systemd/system/`
 * Run (as root) `systemctl enable proxcard-scanner.service`
 * Run (as root) `systemctl start proxcard-scanner.service`
 
