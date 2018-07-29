@@ -7,9 +7,6 @@ This script allows you to define a list of 'authorized' proxcards and fire an MQ
 
 The Proxcard Scanner used is a [RFIDeas pcProx 125 kHz][rfid] which basically simulates keyboard input. This is best coupled with a Raspberry Pi or nearby Linux box.
 
-The python script uses [evdev][evdev] to read the input and compare it against the defined array of badges and [paho-mqtt][paho-mqtt] to interface with any MQTT capable system.
-
-
 ## Documentation
 
 Once you plug the RFID reader to the Pi's USB, if you run the `lsusb` command it should be listed there:
@@ -50,7 +47,14 @@ static_roster = [
 
 ```
 ## Requirements
+* [evdev][evdev] (install using pip3)
+* [paho-mqtt][paho-mqtt] (install using pip3)
 
+## Running as a service
+### Systemd
+* Copy rpi-sensor.service to `/etc/systemd/system/`
+* Run (as root) `systemctl enable proxcard-scanner.service`
+* Run (as root) `systemctl start proxcard-scanner.service`
 
 
 [rfid]: https://www.rfideas.com/support/product-support/pcprox-125-khz-enroll
