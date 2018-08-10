@@ -1,0 +1,4 @@
+### Proxcard MQTT Authentication Requirements
+pyyaml
+paho-mqtt
+evdev
