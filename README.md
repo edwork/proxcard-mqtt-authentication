@@ -26,7 +26,7 @@ $ python proxcard_auth.py
 ```
 
 ## Config
-
+Configure these settings within proxcard_auth.py
 ```ini
 
 MQTT_HOST = '127.0.0.1'
@@ -36,19 +36,19 @@ MQTT_PASSWORD = 'mqtt_pass'
 MQTT_CLIENT_ID = 'badge-scanner-01'
 MQTT_TOPIC_PREFIX = 'home/badge-scan'
 
-...
+```
 
-static_roster = [
-                '111111', """ /// User 1 /// """
-                '222222', """ /// User 2 /// """
-                '333333', """ /// User 3 """
-                'dummy'   """ /// Dummy entry as there is a list bug /// """
-                ]
+Configure these IDs within roster.yaml (this will be the six digit ID of your proxcard, usually written on the back. You can also find this by running proxcard_auth.py and looking at the output.
+```ini
+- 111111 # User 1
+- 222222 # User 2
+- 333333 # User 3
 
 ```
-## Requirements
+## Requirements (Python3!)
 * [evdev][evdev] (install using pip3)
 * [paho-mqtt][paho-mqtt] (install using pip3)
+* [pyyaml][pyyaml] (install using pip3)
 
 ## Running as a service
 ### Systemd
@@ -60,3 +60,4 @@ static_roster = [
 [rfid]: https://www.rfideas.com/support/product-support/pcprox-125-khz-enroll
 [evdev]: https://github.com/gvalkov/python-evdev
 [paho-mqtt]: https://www.eclipse.org/paho/clients/python/docs/
+[pyyaml]: https://pyyaml.org/
